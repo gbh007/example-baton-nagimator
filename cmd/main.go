@@ -1,7 +1,7 @@
 package main
 
-import "app/internal/server"
+import "app/internal/controller"
 
 func main() {
-	server.Serve()
+	controller.Serve()
 }

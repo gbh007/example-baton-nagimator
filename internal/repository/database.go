@@ -19,7 +19,8 @@ func New(dns string) (*Repository, error) {
 	}
 
 	err = db.AutoMigrate(
-		&domain.ButtonPressed{},
+		&domain.User{},
+		&domain.Button{},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("gorm automigrate: %w", err)
