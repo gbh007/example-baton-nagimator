@@ -29,10 +29,7 @@ func main() {
 		ll = slog.LevelDebug
 	}
 
-	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{
-		AddSource: *debug,
-		Level:     ll,
-	}))
+	logger := slog.New(slog.NewJSONHandler(os.Stderr, &slog.HandlerOptions{Level: ll}))
 
 	c, err := controller.New(
 		logger,

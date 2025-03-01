@@ -2,6 +2,7 @@ package button
 
 import (
 	"app/internal/domain"
+	"app/internal/metrics"
 	"app/internal/repository"
 	"context"
 	"errors"
@@ -44,6 +45,8 @@ func (s *Service) PressButton(ctx context.Context, user domain.User) (domain.But
 	}
 
 	b.UpdateText()
+
+	metrics.RecordButtonPress(user.Name)
 
 	return b, nil
 }

@@ -1,14 +1,18 @@
 package controller
 
 import (
+	"app/internal/metrics"
 	"app/internal/repository"
 	"app/internal/service/button"
 	"app/internal/service/user"
 	"context"
 	"log/slog"
 	"net/http"
+	"time"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/valyala/fasthttp"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	_ "embed"
 )
@@ -28,7 +32,8 @@ type Controller struct {
 	buttonService *button.Service
 	userSevice    *user.Service
 
-	handleIndex fasthttp.RequestHandler
+	handleIndex   fasthttp.RequestHandler
+	handleMetrics fasthttp.RequestHandler
 }
 
 func New(logger *slog.Logger, addr string, debug bool, dbType, dbDNS string) (*Controller, error) {
@@ -57,6 +62,7 @@ func (c Controller) Serve(ctx context.Context) error {
 		PathRewrite: func(ctx *fasthttp.RequestCtx) []byte { return []byte("/index.html") },
 		SkipCache:   true,
 	}).NewRequestHandler()
+	c.handleMetrics = fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler())
 
 	server := &fasthttp.Server{
 		Handler: c.handler,
@@ -79,12 +85,10 @@ func (c Controller) Serve(ctx context.Context) error {
 }
 
 func (c *Controller) handler(ctx *fasthttp.RequestCtx) {
+	startAt := time.Now()
 	p := string(ctx.Path())
+	method := string(ctx.Request.Header.Method())
 	ctx.SetContentType("application/json")
-
-	if c.debug {
-		c.logger.Debug("http request", "path", p, "method", string(ctx.Request.Header.Method()))
-	}
 
 	switch {
 	case p == "/" && ctx.IsGet():
@@ -95,10 +99,12 @@ func (c *Controller) handler(ctx *fasthttp.RequestCtx) {
 		} else {
 			ctx.SetBody(index_html_body)
 		}
-	case p == "/logo.png" && ctx.IsGet():
+	case (p == "/logo.png" || p == "/favicon.ico") && ctx.IsGet():
 		ctx.SetStatusCode(http.StatusOK)
 		ctx.SetContentType("image/png")
 		ctx.SetBody(logo_body)
+	case p == "/metrics" && ctx.IsGet():
+		c.handleMetrics(ctx)
 	case p == "/api/user" && ctx.IsGet():
 		c.GetUser(ctx)
 	case p == "/api/user" && ctx.IsPost():
@@ -110,4 +116,14 @@ func (c *Controller) handler(ctx *fasthttp.RequestCtx) {
 	default:
 		ctx.SetStatusCode(http.StatusNoContent)
 	}
+
+	if c.debug {
+		c.logger.Debug("http request",
+			"path", p,
+			"method", method,
+			"code", ctx.Response.Header.StatusCode(),
+		)
+	}
+
+	metrics.RecordHTTPRequest(p, method, ctx.Response.Header.StatusCode(), time.Since(startAt))
 }
