@@ -3,6 +3,7 @@ package repository
 import (
 	"app/internal/domain"
 	"fmt"
+	"log/slog"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
@@ -15,7 +16,7 @@ type Repository struct {
 	db *gorm.DB
 }
 
-func New(dbType, dbDNS string) (*Repository, error) {
+func New(lg *slog.Logger, dbType, dbDNS string) (*Repository, error) {
 	var dialector gorm.Dialector
 
 	switch dbType {
@@ -29,7 +30,10 @@ func New(dbType, dbDNS string) (*Repository, error) {
 		return nil, fmt.Errorf("unknown db type: %s", dbType)
 	}
 
-	db, err := gorm.Open(dialector, &gorm.Config{Logger: logger.Discard})
+	db, err := gorm.Open(dialector, &gorm.Config{Logger: logger.New(
+		slog.NewLogLogger(lg.Handler(), slog.LevelDebug),
+		logger.Config{LogLevel: logger.Info},
+	)})
 	if err != nil {
 		return nil, fmt.Errorf("gorm open: %w", err)
 	}
