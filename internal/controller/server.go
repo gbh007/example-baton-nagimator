@@ -29,13 +29,13 @@ type Controller struct {
 	userSevice    *user.Service
 }
 
-func New(addr string, debug bool) (*Controller, error) {
+func New(addr string, debug bool, dbType, dbDNS string) (*Controller, error) {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		AddSource: true,
 		Level:     slog.LevelDebug,
 	}))
 
-	repo, err := repository.New("test.db")
+	repo, err := repository.New(dbType, dbDNS)
 	if err != nil {
 		return nil, err
 	}

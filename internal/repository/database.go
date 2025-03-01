@@ -5,15 +5,31 @@ import (
 	"fmt"
 
 	"github.com/glebarez/sqlite"
+	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 type Repository struct {
 	db *gorm.DB
 }
 
-func New(dns string) (*Repository, error) {
-	db, err := gorm.Open(sqlite.Open(dns), &gorm.Config{})
+func New(dbType, dbDNS string) (*Repository, error) {
+	var dialector gorm.Dialector
+
+	switch dbType {
+	case "sqlite":
+		dialector = sqlite.Open(dbDNS)
+	case "postgres":
+		dialector = postgres.Open(dbDNS)
+	case "mysql":
+		dialector = mysql.Open(dbDNS)
+	default:
+		return nil, fmt.Errorf("unknown db type: %s", dbType)
+	}
+
+	db, err := gorm.Open(dialector, &gorm.Config{Logger: logger.Discard})
 	if err != nil {
 		return nil, fmt.Errorf("gorm open: %w", err)
 	}
