@@ -1,1 +1,2 @@
 *.db
+internal/controller/index.html.fasthttp.br

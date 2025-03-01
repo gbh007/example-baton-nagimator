@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Baton nagimator</title>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- <style></style> -->
+    <script>
+      const app = Vue.createApp({
+        setup() {
+          const appState = Vue.reactive({
+            user: {},
+            buttons: [],
+          });
+
+          async function createUser() {
+            axios
+              .post("/api/user")
+              .then(function (response) {
+                getUser();
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+          }
+
+          async function getUser() {
+            axios
+              .get("/api/user")
+              .then(function (response) {
+                const data = response.data;
+                appState.user = data;
+              })
+              .catch(function (error) {
+                if (error.response.status == 401) {
+                  createUser();
+                  return;
+                }
+
+                console.log(error);
+              });
+          }
+
+          async function pressButton() {
+            axios
+              .post("/api/button")
+              .then(function (response) {
+                console.log(response.data);
+                getButtons();
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+          }
+
+          async function getButtons() {
+            axios
+              .get("/api/button")
+              .then(function (response) {
+                const data = response.data;
+                appState.buttons = data;
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+          }
+
+          Vue.onBeforeMount(() => {
+            getUser();
+            getButtons();
+          });
+
+          return {
+            appState,
+            createUser,
+            getUser,
+            pressButton,
+            getButtons,
+          };
+        },
+      });
+
+      window.addEventListener("load", async function () {
+        app.mount("#app");
+      });
+    </script>
+  </head>
+  <body id="app">
+    <div>Name: {{appState.user.name}}</div>
+    <div>
+      <button @click="pressButton">🥖 Нажми меня</button>
+    </div>
+    <div v-for="button in appState.buttons">
+      {{button.text}} - {{button.count}}
+    </div>
+  </body>
+</html>

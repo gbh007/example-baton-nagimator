@@ -44,6 +44,10 @@ func (c Controller) Serve() error {
 		ctx.SetContentType("application/json")
 
 		switch {
+		case p == "/" && ctx.IsGet():
+			ctx.SetStatusCode(http.StatusOK)
+			ctx.SetContentType("text/html")
+			ctx.SendFile("internal/controller/index.html")
 		case p == "/api/user" && ctx.IsGet():
 			c.GetUser(ctx)
 		case p == "/api/user" && ctx.IsPost():
