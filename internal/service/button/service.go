@@ -5,6 +5,7 @@ import (
 	"app/internal/repository"
 	"context"
 	"errors"
+	"slices"
 	"time"
 
 	"gorm.io/gorm"
@@ -42,5 +43,40 @@ func (s *Service) PressButton(ctx context.Context, user domain.User) (domain.But
 		return domain.Button{}, err
 	}
 
+	b.UpdateText()
+
 	return b, nil
+}
+
+func (s *Service) Buttons(ctx context.Context, user domain.User) ([]domain.Button, error) {
+	buttons, err := s.repo.ButtonsByUser(ctx, user.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	slices.SortStableFunc(buttons, func(a, b domain.Button) int {
+		if a.Year != b.Year {
+			return b.Year - a.Year
+		}
+
+		if a.Month != b.Month {
+			return b.Month - a.Month
+		}
+
+		if a.Day != b.Day {
+			return b.Day - a.Day
+		}
+
+		return 0
+	})
+
+	if len(buttons) > 7 {
+		buttons = buttons[:7]
+	}
+
+	for i := range buttons {
+		buttons[i].UpdateText()
+	}
+
+	return buttons, nil
 }

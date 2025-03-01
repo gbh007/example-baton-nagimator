@@ -1,0 +1,17 @@
+@addr=http://localhost:8080
+@token=e9591c94a9100f559e4cd8406f1d7202
+
+###
+GET {{addr}}/api/user HTTP/1.1
+Cookie: baton-session={{token}}
+
+###
+POST {{addr}}/api/user HTTP/1.1
+
+###
+GET {{addr}}/api/button HTTP/1.1
+Cookie: baton-session={{token}}
+
+###
+POST {{addr}}/api/button HTTP/1.1
+Cookie: baton-session={{token}}

@@ -1,90 +1,59 @@
 package controller
 
 import (
-	"app/internal/domain"
 	"app/internal/repository"
 	"app/internal/service/button"
 	"app/internal/service/user"
-	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/valyala/fasthttp"
-	"gorm.io/gorm"
 )
 
-func Serve() {
+type Controller struct {
+	buttonService *button.Service
+	userSevice    *user.Service
+	logger        *slog.Logger
+}
+
+func New() (*Controller, error) {
+	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
+		AddSource: true,
+		Level:     slog.LevelDebug,
+	}))
+
 	repo, err := repository.New("test.db")
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	buttonService := button.New(repo)
 	userSevice := user.New(repo)
 
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	return &Controller{
+		buttonService: buttonService,
+		userSevice:    userSevice,
+		logger:        logger,
+	}, nil
+}
 
-	err = fasthttp.ListenAndServe(":8080", func(ctx *fasthttp.RequestCtx) {
-		token := string(ctx.Request.Header.Cookie("baton-session"))
-		user, err := userSevice.GetUser(ctx, token)
-		if errors.Is(err, gorm.ErrRecordNotFound) { // FIXME: убрать после тестов
-			user, err = userSevice.CreateUser(ctx)
-			if err != nil {
-				ctx.SetBodyString(err.Error())
-				ctx.SetStatusCode(http.StatusInternalServerError)
+func (c Controller) Serve() error {
+	return fasthttp.ListenAndServe(":8080", func(ctx *fasthttp.RequestCtx) {
+		p := string(ctx.Path())
+		ctx.SetContentType("application/json")
 
-				return
-			}
-
-			slog.Debug(
-				"user new",
-				slog.Any("user", user),
-				slog.String("token", token),
-			)
-
-			user, err = userSevice.GetUser(ctx, user.Token)
-			if err != nil {
-				ctx.SetBodyString(err.Error())
-				ctx.SetStatusCode(http.StatusInternalServerError)
-
-				return
-			}
-
-			c := fasthttp.Cookie{}
-			c.SetHTTPOnly(true)
-			c.SetKey("baton-session")
-			c.SetPath("/")
-			c.SetValue(user.Token)
-			ctx.Response.Header.SetCookie(&c)
+		switch {
+		case p == "/api/user" && ctx.IsGet():
+			c.GetUser(ctx)
+		case p == "/api/user" && ctx.IsPost():
+			c.CreateUser(ctx)
+		case p == "/api/button" && ctx.IsGet():
+			c.Buttons(ctx)
+		case p == "/api/button" && ctx.IsPost():
+			c.PressButton(ctx)
+		default:
+			ctx.SetStatusCode(http.StatusNoContent)
 		}
-		if err != nil {
-			ctx.SetBodyString(err.Error())
-			ctx.SetStatusCode(http.StatusInternalServerError)
-
-			return
-		}
-
-		slog.Debug(
-			"user final",
-			slog.Any("user", user),
-			slog.String("token", token),
-		)
-
-		b, err := buttonService.PressButton(ctx, domain.User{
-			ID: user.ID,
-		})
-		if err != nil {
-			ctx.SetBodyString(err.Error())
-			ctx.SetStatusCode(http.StatusInternalServerError)
-
-			return
-		}
-
-		ctx.SetBodyString(fmt.Sprintln(b.Count))
-		ctx.SetStatusCode(http.StatusOK)
 	})
-	if err != nil {
-		panic(err)
-	}
 }

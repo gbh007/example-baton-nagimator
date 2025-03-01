@@ -1,7 +1,7 @@
 package domain
 
 type User struct {
-	ID    int    `json:"year" gorm:"primaryKey"`
+	ID    int    `json:"id" gorm:"primaryKey"`
 	Name  string `json:"name"`
-	Token string `json:"token" gorm:"uniqueIndex"`
+	Token string `json:"-" gorm:"uniqueIndex"`
 }
