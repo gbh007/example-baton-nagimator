@@ -10,12 +10,14 @@ import (
 )
 
 type Service struct {
-	repo *repository.Repository
+	repo       *repository.Repository
+	randomizer *domain.Randomizer
 }
 
 func New(repo *repository.Repository) *Service {
 	return &Service{
-		repo: repo,
+		repo:       repo,
+		randomizer: domain.NewRandomizer(),
 	}
 }
 
@@ -23,7 +25,7 @@ func (s *Service) CreateUser(ctx context.Context) (domain.User, error) {
 	token := md5.Sum([]byte(time.Now().String()))
 
 	u := domain.User{
-		Name:  "Test", // FIXME: добавить генерацию
+		Name:  s.randomizer.Name(),
 		Token: hex.EncodeToString(token[:]),
 	}
 
