@@ -16,6 +16,9 @@ import (
 //go:embed index.html
 var index_html_body []byte
 
+//go:embed logo.png
+var logo_body []byte
+
 type Controller struct {
 	addr  string
 	debug bool
@@ -71,6 +74,10 @@ func (c Controller) Serve() error {
 			} else {
 				ctx.SetBody(index_html_body)
 			}
+		case p == "/logo.png" && ctx.IsGet():
+			ctx.SetStatusCode(http.StatusOK)
+			ctx.SetContentType("image/png")
+			ctx.SetBody(logo_body)
 		case p == "/api/user" && ctx.IsGet():
 			c.GetUser(ctx)
 		case p == "/api/user" && ctx.IsPost():

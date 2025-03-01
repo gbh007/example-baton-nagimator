@@ -5,6 +5,7 @@
     <title>Baton nagimator</title>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <link rel="icon" type="image/png" href="/logo.png" />
     <style>
       body {
         margin: 0;
@@ -21,6 +22,7 @@
           const appState = Vue.reactive({
             user: {},
             buttons: [],
+            unauthorized: true,
           });
 
           async function createUser() {
@@ -40,11 +42,12 @@
               .then(function (response) {
                 const data = response.data;
                 appState.user = data;
+                appState.unauthorized = false;
                 getButtons();
               })
               .catch(function (error) {
                 if (error.response.status == 401) {
-                  createUser();
+                  appState.unauthorized = true;
                   return;
                 }
 
@@ -96,7 +99,22 @@
     </script>
   </head>
   <body id="app">
-    <div style="display: flex; flex-direction: column; gap: 20px">
+    <div
+      v-if="appState.unauthorized"
+      style="
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        font-size: larger;
+        text-align: center;
+      "
+    >
+      <b>Кто ты такой?</b>
+      <button @click="createUser" style="padding: 5px">
+        Любитель нажимать на кнопку ❤️
+      </button>
+    </div>
+    <div v-else style="display: flex; flex-direction: column; gap: 20px">
       <i style="text-align: center">Привет {{appState.user.name}}</i>
       <button @click="pressButton" style="font-size: xxx-large; padding: 5px">
         🥖 Нажми меня
