@@ -9,15 +9,24 @@ import (
 	"os"
 
 	"github.com/valyala/fasthttp"
+
+	_ "embed"
 )
 
+//go:embed index.html
+var index_html_body []byte
+
 type Controller struct {
+	addr  string
+	debug bool
+
+	logger *slog.Logger
+
 	buttonService *button.Service
 	userSevice    *user.Service
-	logger        *slog.Logger
 }
 
-func New() (*Controller, error) {
+func New(addr string, debug bool) (*Controller, error) {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
 		AddSource: true,
 		Level:     slog.LevelDebug,
@@ -32,14 +41,24 @@ func New() (*Controller, error) {
 	userSevice := user.New(repo)
 
 	return &Controller{
+		addr:  addr,
+		debug: debug,
+
+		logger: logger,
+
 		buttonService: buttonService,
 		userSevice:    userSevice,
-		logger:        logger,
 	}, nil
 }
 
 func (c Controller) Serve() error {
-	return fasthttp.ListenAndServe(":8080", func(ctx *fasthttp.RequestCtx) {
+	handleIndex := (&fasthttp.FS{
+		Root:        "internal/controller",
+		PathRewrite: func(ctx *fasthttp.RequestCtx) []byte { return []byte("/index.html") },
+		SkipCache:   true,
+	}).NewRequestHandler()
+
+	return fasthttp.ListenAndServe(c.addr, func(ctx *fasthttp.RequestCtx) {
 		p := string(ctx.Path())
 		ctx.SetContentType("application/json")
 
@@ -47,7 +66,11 @@ func (c Controller) Serve() error {
 		case p == "/" && ctx.IsGet():
 			ctx.SetStatusCode(http.StatusOK)
 			ctx.SetContentType("text/html")
-			ctx.SendFile("internal/controller/index.html")
+			if c.debug {
+				handleIndex(ctx)
+			} else {
+				ctx.SetBody(index_html_body)
+			}
 		case p == "/api/user" && ctx.IsGet():
 			c.GetUser(ctx)
 		case p == "/api/user" && ctx.IsPost():

@@ -5,7 +5,16 @@
     <title>Baton nagimator</title>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <!-- <style></style> -->
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+    </style>
     <script>
       const app = Vue.createApp({
         setup() {
@@ -31,6 +40,7 @@
               .then(function (response) {
                 const data = response.data;
                 appState.user = data;
+                getButtons();
               })
               .catch(function (error) {
                 if (error.response.status == 401) {
@@ -68,7 +78,6 @@
 
           Vue.onBeforeMount(() => {
             getUser();
-            getButtons();
           });
 
           return {
@@ -87,12 +96,27 @@
     </script>
   </head>
   <body id="app">
-    <div>Name: {{appState.user.name}}</div>
-    <div>
-      <button @click="pressButton">🥖 Нажми меня</button>
-    </div>
-    <div v-for="button in appState.buttons">
-      {{button.text}} - {{button.count}}
+    <div style="display: flex; flex-direction: column; gap: 20px">
+      <i style="text-align: center">Привет {{appState.user.name}}</i>
+      <button @click="pressButton" style="font-size: xxx-large; padding: 5px">
+        🥖 Нажми меня
+      </button>
+      <div
+        style="
+          font-size: large;
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+        "
+      >
+        <span
+          v-for="button in appState.buttons"
+          style="display: flex; justify-content: space-between"
+        >
+          <span>{{button.text}}</span>
+          <span>{{button.count}}</span>
+        </span>
+      </div>
     </div>
   </body>
 </html>
