@@ -111,6 +111,34 @@
          ],
          "title": "Я кушаю",
          "type": "timeseries"
+      },
+      {
+         "datasource": {
+            "type": "victoriametrics-logs-datasource",
+            "uid": "${logs}"
+         },
+         "gridPos": {
+            "h": 20,
+            "w": 24,
+            "x": 0,
+            "y": 9
+         },
+         "id": 4,
+         "options": {
+            "sortOrder": "Descending"
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "victoriametrics-logs-datasource",
+                  "uid": "${logs}"
+               },
+               "expr": "service_name:\"example-baton-nagimator\""
+            }
+         ],
+         "title": "Logs",
+         "type": "logs"
       }
    ],
    "refresh": "1m",
@@ -134,6 +162,11 @@
             "query": "label_values(go_info{}, instance)",
             "refresh": 2,
             "type": "query"
+         },
+         {
+            "name": "logs",
+            "query": "victoriametrics-logs-datasource",
+            "type": "datasource"
          }
       ]
    },

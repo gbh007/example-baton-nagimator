@@ -44,6 +44,7 @@ services:
       - ../deployment/provisioning:/etc/grafana/provisioning
       - ../deployment/dashboards:/var/lib/grafana/dashboards
     environment:
+      GF_INSTALL_PLUGINS: victoriametrics-logs-datasource
       GF_AUTH_ANONYMOUS_ENABLED: true
       GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
       GF_SERVER_ROOT_URL: http://localhost:3000
@@ -51,6 +52,45 @@ services:
       - 3000:3000
     depends_on:
       - victoriametrics
+      - victorialogs
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: 2
+
+
+  victorialogs:
+    image: docker.io/victoriametrics/victoria-logs:v1.10.1-victorialogs
+    restart: always
+    command:
+      - "-retentionPeriod=1d"
+      - "-retention.maxDiskSpaceUsageBytes=100MiB"
+      - "-insert.maxLineSizeBytes=1MiB"
+    ports:
+      - 9428:9428
+    volumes:
+      - victorialogs-data:/victoria-logs-data
+    depends_on:
+      - service
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: 2
+
+  vector:
+    image: docker.io/timberio/vector:0.42.X-distroless-libc
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/lib/docker:/var/lib/docker
+      - ../deployment/configs/vector.yml:/etc/vector/vector.yaml:ro
+      - vector-data:/var/lib/vector
+    user: root
+    depends_on:
+      - victorialogs
+      - service
     logging:
       driver: json-file
       options:
@@ -61,3 +101,5 @@ volumes:
   service-data:
   victoriametrics-data:
   grafana-data:
+  victorialogs-data:
+  vector-data:

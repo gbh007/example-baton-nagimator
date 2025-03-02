@@ -6,3 +6,8 @@ datasources:
     access: proxy
     url: http://victoriametrics:8428
     isDefault: true
+  - name: VictoriaLogs
+    type: victoriametrics-logs-datasource
+    access: proxy
+    url: http://victorialogs:9428
+    isDefault: false

@@ -13,6 +13,10 @@ local config = {
     host: {
       name: 'host',
     },
+    logs: {
+      type: 'victoriametrics-logs-datasource',
+      name: 'logs',
+    },
   },
   label: {
     filter: {
@@ -27,6 +31,10 @@ local config = {
     metrics: {
       type: $.variable.prometheus.type,
       uid: '${%s}' % $.variable.prometheus.name,
+    },
+    logs: {
+      type: $.variable.logs.type,
+      uid: '${%s}' % $.variable.logs.name,
     },
   },
 };
@@ -104,7 +112,27 @@ grafonnet.dashboard.new(config.dashboard.title)
       config.datasource.metrics.type,
       config.datasource.metrics.uid,
     ),
-  ], 8, 8, 0),
+  ], 8, 8, 0) + [
+    panel.logs.new('Logs')
+    + panel.logs.queryOptions.withTargets([
+      {
+        datasource: {
+          type: config.datasource.logs.type,
+          uid: config.datasource.logs.uid,
+        },
+        expr: 'service_name:"example-baton-nagimator"',
+      },
+    ])
+    + panel.logs.options.withSortOrder('Descending')
+    + panel.logs.gridPos.withH(20)
+    + panel.logs.gridPos.withW(24)
+    + panel.logs.gridPos.withX(0)
+    + panel.logs.gridPos.withY(9)
+    + panel.logs.queryOptions.withDatasource(
+      config.datasource.logs.type,
+      config.datasource.logs.uid,
+    ),
+  ],
 )
 + grafonnet.dashboard.withVariables([
   variable.datasource.new(
@@ -119,4 +147,8 @@ grafonnet.dashboard.new(config.dashboard.title)
   + variable.query.selectionOptions.withMulti()
   + variable.query.selectionOptions.withIncludeAll(true, '.*')
   + variable.query.refresh.onTime(),
+  variable.datasource.new(
+    config.variable.logs.name,
+    config.variable.logs.type,
+  ),
 ])
