@@ -33,3 +33,14 @@ func (repo Repository) ButtonsByUser(ctx context.Context, userID int) ([]domain.
 
 	return buttons, nil
 }
+
+func (repo Repository) ButtonsTotalByUser(ctx context.Context, userID int) (int, error) {
+	var c int
+
+	res := repo.db.Model(&domain.Button{}).Where("user_id = ?", userID).Select("sum(count)").Scan(&c)
+	if res.Error != nil {
+		return 0, res.Error
+	}
+
+	return c, nil
+}

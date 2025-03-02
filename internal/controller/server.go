@@ -111,6 +111,8 @@ func (c *Controller) handler(ctx *fasthttp.RequestCtx) {
 		c.CreateUser(ctx)
 	case p == "/api/button" && ctx.IsGet():
 		c.Buttons(ctx)
+	case p == "/api/button/power" && ctx.IsGet():
+		c.ButtonPower(ctx)
 	case p == "/api/button" && ctx.IsPost():
 		c.PressButton(ctx)
 	default:

@@ -6,6 +6,7 @@ import (
 	"app/internal/repository"
 	"context"
 	"errors"
+	"io"
 	"slices"
 	"time"
 
@@ -82,4 +83,13 @@ func (s *Service) Buttons(ctx context.Context, user domain.User) ([]domain.Butto
 	}
 
 	return buttons, nil
+}
+
+func (s *Service) ButtonBadge(ctx context.Context, w io.Writer, userID int) error {
+	c, err := s.repo.ButtonsTotalByUser(ctx, userID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+
+	return renderBadgeTemplate(w, c)
 }

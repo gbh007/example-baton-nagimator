@@ -82,3 +82,29 @@ func (c *Controller) Buttons(ctx *fasthttp.RequestCtx) {
 	ctx.SetStatusCode(http.StatusOK)
 	_ = jsoniter.NewEncoder(ctx).Encode(buttons)
 }
+
+func (c *Controller) ButtonPower(ctx *fasthttp.RequestCtx) {
+	id, err := ctx.QueryArgs().GetUint("user")
+	if err != nil {
+		ctx.SetStatusCode(http.StatusBadRequest)
+		_ = jsoniter.NewEncoder(ctx).Encode(&errorModel{
+			Message: err.Error(),
+		})
+
+		return
+	}
+
+	err = c.buttonService.ButtonBadge(ctx, ctx, id)
+	if err != nil {
+		ctx.ResetBody()
+		ctx.SetStatusCode(http.StatusInternalServerError)
+		_ = jsoniter.NewEncoder(ctx).Encode(&errorModel{
+			Message: err.Error(),
+		})
+
+		return
+	}
+
+	ctx.SetStatusCode(http.StatusOK)
+	ctx.SetContentType("image/svg+xml")
+}
