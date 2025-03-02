@@ -1,0 +1,11 @@
+global:
+  scrape_interval: 5s
+  scrape_timeout: 1s
+
+scrape_configs:
+  - job_name: "compose"
+    static_configs:
+      - targets:
+          - service:8080
+        labels:
+          service_name: example-button-nagimator

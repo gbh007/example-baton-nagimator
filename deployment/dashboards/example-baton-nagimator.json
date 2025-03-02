@@ -1,0 +1,147 @@
+{
+   "graphTooltip": 1,
+   "panels": [
+      {
+         "datasource": {
+            "type": "prometheus",
+            "uid": "${metrics}"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "reqps"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 0,
+            "y": 0
+         },
+         "id": 1,
+         "options": {
+            "legend": {
+               "showLegend": false
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${metrics}"
+               },
+               "expr": "sum(rate(buttoners_example_baton_nagimator_button_lovers_total{instance=~\"$host\", service_name=\"example-button-nagimator\"}[$__rate_interval]))"
+            }
+         ],
+         "title": "Кнопочный РПС",
+         "type": "timeseries"
+      },
+      {
+         "datasource": {
+            "type": "prometheus",
+            "uid": "${metrics}"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "short"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 8,
+            "y": 0
+         },
+         "id": 2,
+         "options": {
+            "legend": {
+               "displayMode": "table",
+               "placement": "right",
+               "values": [
+                  "value"
+               ]
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${metrics}"
+               },
+               "expr": "sum(delta(buttoners_example_baton_nagimator_button_lovers_total{instance=~\"$host\", service_name=\"example-button-nagimator\"}[1h])) by (name)",
+               "instant": true,
+               "legendFormat": "{{name}}"
+            }
+         ],
+         "title": "Главные часовые нажиматоры",
+         "type": "piechart"
+      },
+      {
+         "datasource": {
+            "type": "prometheus",
+            "uid": "${metrics}"
+         },
+         "fieldConfig": {
+            "defaults": {
+               "unit": "bytes"
+            }
+         },
+         "gridPos": {
+            "h": 8,
+            "w": 8,
+            "x": 16,
+            "y": 0
+         },
+         "id": 3,
+         "options": {
+            "legend": {
+               "showLegend": false
+            }
+         },
+         "pluginVersion": "v11.4.0",
+         "targets": [
+            {
+               "datasource": {
+                  "type": "prometheus",
+                  "uid": "${metrics}"
+               },
+               "expr": "sum(go_memstats_sys_bytes{instance=~\"$host\", service_name=\"example-button-nagimator\"})"
+            }
+         ],
+         "title": "Я кушаю",
+         "type": "timeseries"
+      }
+   ],
+   "refresh": "1m",
+   "schemaVersion": 39,
+   "templating": {
+      "list": [
+         {
+            "name": "metrics",
+            "query": "prometheus",
+            "type": "datasource"
+         },
+         {
+            "allValue": ".*",
+            "datasource": {
+               "type": "prometheus",
+               "uid": "${metrics}"
+            },
+            "includeAll": true,
+            "multi": true,
+            "name": "host",
+            "query": "label_values(go_info{}, instance)",
+            "refresh": 2,
+            "type": "query"
+         }
+      ]
+   },
+   "time": {
+      "from": "now-1h",
+      "to": "now"
+   },
+   "timezone": "utc",
+   "title": "Example baton nagimator",
+   "uid": ""
+}

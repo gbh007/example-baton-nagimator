@@ -1,0 +1,63 @@
+name: example-baton-nagimator
+
+services:
+  service:
+    build:
+      context: ../
+      dockerfile: deployment/Dockerfile
+    user: 0:0
+    volumes:
+      - service-data:/app/data
+    ports:
+      - 8080:8080
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: 2
+
+  victoriametrics:
+    image: victoriametrics/victoria-metrics:v1.110.0
+    restart: always
+    command:
+      - "-retentionPeriod=7d"
+      - "-promscrape.config=/etc/prometheus/prometheus.yml"
+    volumes:
+      - victoriametrics-data:/victoria-metrics-data
+      - ../deployment/configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - 8428:8428
+    depends_on:
+      - service
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: 2
+
+  grafana:
+    image: grafana/grafana-oss:11.5.0
+    restart: always
+    user: 0:0
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ../deployment/provisioning:/etc/grafana/provisioning
+      - ../deployment/dashboards:/var/lib/grafana/dashboards
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: true
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_SERVER_ROOT_URL: http://localhost:3000
+    ports:
+      - 3000:3000
+    depends_on:
+      - victoriametrics
+    logging:
+      driver: json-file
+      options:
+        max-size: 1m
+        max-file: 2
+
+volumes:
+  service-data:
+  victoriametrics-data:
+  grafana-data:
