@@ -37,7 +37,8 @@
 
 ## Другие кнопочные
 
-1. [Petus projectus](https://github.com/gbh007/petus-projectus)
+- [Petus projectus](https://github.com/gbh007/petus-projectus)
+- [Buttoners](https://github.com/gbh007/buttoners)
 
 ![Почему ты еще не забатонил?](http://localhost:8080/api/button/power?user=1)
 
